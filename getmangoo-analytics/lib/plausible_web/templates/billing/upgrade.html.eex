@@ -1,16 +1,18 @@
 <script type="text/javascript"  src="https://cdnjs.cloudflare.com/ajax/libs/fetch-jsonp/1.1.3/fetch-jsonp.min.js"></script>
 <script>
   plans = function() {
+    const rawPlans = <%= raw Jason.encode!(Plausible.Billing.Plans.plans_for(@user)) %>
+      const selectedPlan = rawPlans[0]
+
     return {
-      rawPlans: <%= raw Jason.encode!(Plausible.Billing.Plans.plans_for(@user)) %>,
+      rawPlans,
       localizedPlans: null,
-      volume: '10k',
+      volume: selectedPlan.volume,
       billingCycle: 'monthly',
       selectedPlanPrice() {
         return this.priceFor(this.selectedPlanProductId())
       },
       selectedPlanProductId() {
-        var selectedPlan = this.rawPlans.find((plan) => plan.volume === this.volume)
         if (this.billingCycle === 'monthly'){
           return selectedPlan.monthly_product_id
         } else {
@@ -23,7 +25,7 @@
           'USD': '$',
           'EUR': '€',
           'GBP': '£'
-        }[plan.currency]
+        }[plan.currency] || plan.currency
 
         return currency + plan.price.net
       },
