@@ -51,7 +51,6 @@ RUN mix release plausible
 
 # Main Docker Image
 FROM alpine:3.15.3
-LABEL maintainer="tckb <tckb@tgrthi.me>"
 
 ARG BUILD_METADATA={}
 ENV BUILD_METADATA=$BUILD_METADATA
@@ -70,8 +69,8 @@ COPY --from=buildcontainer /app/_build/prod/rel/plausible /app
 RUN chown -R plausibleuser:plausibleuser /app
 USER plausibleuser
 WORKDIR /app
-ENV GEONAMES_SOURCE_FILE=/app/lib/plausible-0.0.1/priv/geonames.csv
+# ENV GEONAMES_SOURCE_FILE=/app/lib/plausible-0.0.1/priv/geonames.csv
 ENV LISTEN_IP=0.0.0.0
 ENTRYPOINT ["/entrypoint.sh"]
-EXPOSE 8000
+EXPOSE 8001
 CMD ["run"]
