@@ -34,7 +34,7 @@ spec:
   ports:
     - name: http
       port: 8000
-      targetPort: 8000
+      targetPort: 8001
       protocol: TCP
   selector:
     app.kubernetes.io/name: plausible
@@ -118,11 +118,13 @@ spec:
           image: registry.digitalocean.com/getmangoo/analytics:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 8000
+            - containerPort: 8001
           envFrom:
             - secretRef:
                 name: plausible-config
           env:
+            - name: PORT
+              value: "8001"
             - name: MAILER_EMAIL
               value: info@app.getmangoo.com
             - name: POSTGRES_USER
@@ -175,14 +177,14 @@ spec:
           readinessProbe:
             httpGet:
               path: /api/health
-              port: 8000
-            initialDelaySeconds: 35
+              port: 8001
+            initialDelaySeconds: 185
             failureThreshold: 6
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /api/health
-              port: 8000
-            initialDelaySeconds: 45
+              port: 8001
+            initialDelaySeconds: 185
             failureThreshold: 3
             periodSeconds: 10
