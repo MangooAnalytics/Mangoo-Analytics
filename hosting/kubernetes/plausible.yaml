@@ -126,7 +126,7 @@ spec:
             - name: PORT
               value: "8001"
             - name: MAILER_EMAIL
-              value: info@app.getmangoo.com
+              value: info@getmangoo.com
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
