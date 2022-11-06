@@ -123,6 +123,8 @@ spec:
             - secretRef:
                 name: plausible-config
           env:
+            - name: MAILER_EMAIL
+              value: info@app.getmangoo.com
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:

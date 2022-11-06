@@ -43,7 +43,7 @@ spec:
       restartPolicy: Always
       containers:
         - name: plausible-smtp
-          image: bytemark/smtp:latest
+          image: turgon37/smtp-relay
           imagePullPolicy: Always
           ports:
             - containerPort: 25
@@ -68,3 +68,27 @@ spec:
             initialDelaySeconds: 30
             failureThreshold: 3
             periodSeconds: 10
+          env:
+            - name: RELAY_USE_TLS
+              value: "no"
+            - name: RELAY_MYHOSTNAME
+              value: "getmangoo.com"
+            - name: RELAY_MYDOMAIN
+              value: "getmangoo.com"
+            - name: RELAY_MODE
+              value: ALLOW_AUTH_NODOMAIN
+            - name: RELAY_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: plausible-sendgrid-smtp
+                  key: smarthost
+            - name: RELAY_LOGIN
+              valueFrom:
+                secretKeyRef:
+                  name: plausible-sendgrid-smtp
+                  key: username
+            - name: RELAY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: plausible-sendgrid-smtp
+                  key: password
