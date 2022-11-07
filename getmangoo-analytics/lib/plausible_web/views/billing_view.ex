@@ -21,6 +21,7 @@ defmodule PlausibleWeb.BillingView do
   def present_currency("USD"), do: "$"
   def present_currency("EUR"), do: "€"
   def present_currency("GBP"), do: "£"
+  def present_currency(other), do: "#{other} "
 
   def reccommended_plan(usage) do
     cond do
