@@ -23,7 +23,7 @@ defmodule PlausibleWeb.StatsController do
           site: site,
           has_goals: Plausible.Sites.has_goals?(site),
           stats_start_date: stats_start_date,
-          title: "Plausible · " <> site.domain,
+          title: "Mangoo · " <> site.domain,
           offer_email_report: offer_email_report,
           demo: demo,
           flags: get_flags(conn.assigns[:current_user]),
@@ -64,7 +64,7 @@ defmodule PlausibleWeb.StatsController do
       |> Enum.join()
 
     filename =
-      "Plausible export #{params["domain"]} #{Timex.format!(query.date_range.first, "{ISOdate} ")} to #{Timex.format!(query.date_range.last, "{ISOdate} ")}.zip"
+      "Mangoo export #{params["domain"]} #{Timex.format!(query.date_range.first, "{ISOdate} ")} to #{Timex.format!(query.date_range.last, "{ISOdate} ")}.zip"
 
     params = Map.merge(params, %{"limit" => "300", "csv" => "True", "detailed" => "True"})
     limited_params = Map.merge(params, %{"limit" => "100"})
@@ -181,7 +181,7 @@ defmodule PlausibleWeb.StatsController do
           site: shared_link.site,
           has_goals: Plausible.Sites.has_goals?(shared_link.site),
           stats_start_date: shared_link.site.stats_start_date,
-          title: "Plausible · " <> shared_link.site.domain,
+          title: "Mangoo · " <> shared_link.site.domain,
           offer_email_report: false,
           demo: false,
           skip_plausible_tracking: true,

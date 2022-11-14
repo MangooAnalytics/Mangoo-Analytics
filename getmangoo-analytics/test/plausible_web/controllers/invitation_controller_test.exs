@@ -58,7 +58,7 @@ defmodule PlausibleWeb.Site.InvitationControllerTest do
       assert_email_delivered_with(
         to: [nil: inviter.email],
         subject:
-          "[Plausible Analytics] #{user.email} accepted the ownership transfer of #{site.domain}"
+          "[Mangoo Analytics] #{user.email} accepted the ownership transfer of #{site.domain}"
       )
     end
 
@@ -192,7 +192,7 @@ defmodule PlausibleWeb.Site.InvitationControllerTest do
 
       assert_email_delivered_with(
         to: [nil: inviter.email],
-        subject: "[Plausible Analytics] #{user.email} rejected your invitation to #{site.domain}"
+        subject: "[Mangoo Analytics] #{user.email} rejected your invitation to #{site.domain}"
       )
     end
   end
