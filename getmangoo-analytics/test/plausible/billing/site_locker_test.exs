@@ -120,7 +120,7 @@ defmodule Plausible.Billing.SiteLockerTest do
 
       assert_email_delivered_with(
         to: [user],
-        subject: "[Action required] Your Plausible dashboard is now locked"
+        subject: "[Action required] Your Mangoo dashboard is now locked"
       )
     end
 
@@ -142,7 +142,7 @@ defmodule Plausible.Billing.SiteLockerTest do
 
       assert_email_delivered_with(
         to: [user],
-        subject: "[Action required] Your Plausible dashboard is now locked"
+        subject: "[Action required] Your Mangoo dashboard is now locked"
       )
 
       user = Repo.reload!(user) |> Repo.preload(:subscription)
