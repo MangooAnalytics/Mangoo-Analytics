@@ -5,6 +5,6 @@ An administrator of <%= @membership.site.domain %> has removed you as a member. 
 <%= link("Click here", to: Routes.site_url(PlausibleWeb.Endpoint, :index)) %> to view your sites.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />

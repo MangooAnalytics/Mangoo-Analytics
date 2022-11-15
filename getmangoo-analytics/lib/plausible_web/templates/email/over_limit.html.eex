@@ -22,7 +22,7 @@ Have questions or need help with anything? Just reply to this email and we'll gl
 Thanks again for using our product and for your support!
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />
 {{{ pm:unsubscribe }}}

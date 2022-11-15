@@ -10,6 +10,6 @@ Hey,
 <% end %>
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />

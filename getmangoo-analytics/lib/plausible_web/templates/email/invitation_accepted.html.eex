@@ -4,6 +4,6 @@ Hey <%= user_salutation(@invitation.inviter) %>,
 <%= link("Click here", to: Routes.site_url(PlausibleWeb.Endpoint, :settings_general, @invitation.site.domain)) %> to view site settings.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />

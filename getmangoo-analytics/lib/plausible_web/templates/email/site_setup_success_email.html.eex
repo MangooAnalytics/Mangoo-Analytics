@@ -12,7 +12,7 @@ Congrats! The Mangoo script has been installed correctly on <%= link(@site.domai
 Do reply back to this email if you have any questions.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />
 {{{ pm:unsubscribe }}}

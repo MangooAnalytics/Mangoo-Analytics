@@ -9,7 +9,7 @@ We will keep recording stats for another month to give you time to upgrade.
 
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />
 {{{ pm:unsubscribe }}}

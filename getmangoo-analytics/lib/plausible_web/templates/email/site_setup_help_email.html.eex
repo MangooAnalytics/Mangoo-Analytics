@@ -11,7 +11,7 @@ This Mangoo script is 45 times smaller than Google Analytics script so you’ll 
 Do reply back to this email if you have any questions or need some guidance.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />
 {{{ pm:unsubscribe }}}

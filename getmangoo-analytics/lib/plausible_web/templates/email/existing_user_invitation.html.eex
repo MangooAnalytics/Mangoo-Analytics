@@ -5,6 +5,6 @@ Hey,
 will expire 48 hours after this email is sent.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />

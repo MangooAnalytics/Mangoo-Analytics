@@ -9,6 +9,6 @@ If you don't want to continue your subscription, you can cancel it on your <%= l
 Have a question, feedback or need some guidance? Do reply back to this email.
 <br /><br />
 Thanks,<br />
-Uku and Marko<br />
+The Mangoo Analytics Team<br />
 --<br />
 <%= plausible_url() %><br />
