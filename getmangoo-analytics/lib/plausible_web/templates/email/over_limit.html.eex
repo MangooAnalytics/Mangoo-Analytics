@@ -12,7 +12,7 @@ Based on that we recommend you select the <%= @suggested_plan[:volume] %>/mo pla
 <br /><br />
 You can upgrade your subscription using our self-serve platform. The new charge will be prorated to reflect the amount you have already paid and the time until your current subscription is supposed to expire.
 <br /><br />
-<a href="https://plausible.io/settings">Click here</a> to go to your site settings. You can upgrade your subscription tier by clicking the 'change plan' link.
+<a href="https://app.getmangoo.com/settings">Click here</a> to go to your site settings. You can upgrade your subscription tier by clicking the 'change plan' link.
 <% else %>
 This is more than our standard plans, so please reply back to this email to get a quote for your volume.
 <% end %>
@@ -26,3 +26,4 @@ Uku and Marko<br />
 --<br />
 <%= plausible_url() %><br />
 {{{ pm:unsubscribe }}}
+
