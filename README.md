@@ -1,6 +1,6 @@
 # Mangoo-Analytics
 
-Is a open source simple web analytics alternative to google analytics built on top of plausible.io without plausile Mangoo would not be possible.
+Is a open source simple web analytics alternative to google analytics built on top of plausible.io without Plausible Mangoo would not be possible.
 
 Credit where credit is due we would not be anywhere without Plausible.io, on which we are built on top of their OS solution and we are excited to expand the offering beyond what is available today to reach many more customers.
 
