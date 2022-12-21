@@ -2,10 +2,14 @@
 
 Is a open source simple web analytics alternative to google analytics built on top of plausible.io without plausile Mangoo would not be possible.
 
-To comply with the AGPL license guidelines we have published our code and made it open source under the AGPL 
-License as well as indicated all our modification to the original code below:
+Credit where credit is due we would not be anywhere without Plausible.io, on which we are built on top of their OS solution and we are excited to expand the offering beyond what is available today to reach many more customers.
 
-Current Modifications to original Plausible code:
+Mangoo is open source software and released under the AGPLv3 License. Its source code can be found on github 
 
-1.- Front end visualization to meet Mangoo's brand and style
-2.- We removed the google console connectiion as we are looking to create our own from the one available today. 
+We leverage Plausible's open source software to get started. Plausible Analytics (AGPLv3 https://github.com/plausible/analytics/commit/84ee2c04aa0312f93cf792e1355d748cd9196d1a )  Copyright © 2022 Plausible Analytics (www.plausible.io) 
+
+Our Modifications are as follows:
+
+- Dec 2022: Removed Google console integration as we look forward to adding other integration and might bring back the google integration in the future. ‍
+
+- Nov 2022: Light Modification to branding and front end design to match Mangoo's style
