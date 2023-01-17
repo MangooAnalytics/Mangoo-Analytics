@@ -37,7 +37,8 @@ function serializeFilters(filters) {
 
 export function serializeQuery(query, extraQuery=[]) {
   const queryObj = {}
-  if (query.period)  { queryObj.period = query.period  }
+  if (query.period)  { queryObj.period = query.period }
+  if (query.comparison_period) { queryObj.comparison_period = query.comparison_period }
   if (query.date)    { queryObj.date = formatISO(query.date)  }
   if (query.from)    { queryObj.from = formatISO(query.from)  }
   if (query.to)      { queryObj.to = formatISO(query.to)  }

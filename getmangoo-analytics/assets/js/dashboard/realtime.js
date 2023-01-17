@@ -1,5 +1,6 @@
 import React from 'react';
 
+import ComparisonSelector from './comparison-selector'
 import Datepicker from './datepicker'
 import SiteSwitcher from './site-switcher'
 import Filters from './filters'
@@ -37,6 +38,7 @@ class Realtime extends React.Component {
               <Filters className="flex" site={this.props.site} query={this.props.query} history={this.props.history} />
             </div>
             <Datepicker site={this.props.site} query={this.props.query} />
+            <ComparisonSelector site={props.site} query={props.query} />
           </div>
         </div>
         <VisitorGraph site={this.props.site} query={this.props.query} timer={this.props.timer} />

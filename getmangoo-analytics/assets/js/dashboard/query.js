@@ -20,6 +20,7 @@ export function parseQuery(querystring, site) {
 
   return {
     period,
+    comparison_period: q.get('comparison_period') ? q.get('comparison_period') : undefined,
     date: q.get('date') ? parseUTCDate(q.get('date')) : nowForSite(site),
     from: q.get('from') ? parseUTCDate(q.get('from')) : undefined,
     to: q.get('to') ? parseUTCDate(q.get('to')) : undefined,
