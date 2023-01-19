@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, withRouter } from 'react-router-dom'
-import {formatDay, formatMonthYYYY, nowForSite, parseUTCDate} from './util/date'
+import { formatDay, formatMonthYYYY, nowForSite, parseUTCDate } from './util/date'
 import * as storage from './util/storage'
 
 const PERIODS = ['realtime', 'day', 'month', '7d', '30d', '6mo', '12mo', 'year', 'all', 'custom']
@@ -8,15 +8,15 @@ const PERIODS = ['realtime', 'day', 'month', '7d', '30d', '6mo', '12mo', 'year',
 export function parseQuery(querystring, site) {
   const q = new URLSearchParams(querystring)
   let period = q.get('period')
-  const periodKey = `period__${  site.domain}`
+  const periodKey = `period__${site.domain}`
 
   if (PERIODS.includes(period)) {
     if (period !== 'custom' && period !== 'realtime') storage.setItem(periodKey, period)
   } else if (storage.getItem(periodKey)) {
-      period = storage.getItem(periodKey)
-    } else {
-      period = '30d'
-    }
+    period = storage.getItem(periodKey)
+  } else {
+    period = '30d'
+  }
 
   return {
     period,
@@ -95,20 +95,24 @@ class QueryLink extends React.Component {
   }
 
   render() {
-    const { to, ...props } = this.props
+    const { to, disabled, staticContext, ...props } = this.props
+
+    if (disabled) {
+      return <span {...props} aria-disabled="true" onClick={null}></span>
+    }
     return (
       <Link
         {...props}
         to={{ pathname: window.location.pathname, search: generateQueryString(to) }}
         onClick={this.onClick}
       />
-)
+    )
   }
 }
 const QueryLinkWithRouter = withRouter(QueryLink)
 export { QueryLinkWithRouter as QueryLink };
 
-function QueryButton({history, query, to, disabled, className, children, onClick}) {
+function QueryButton({ history, query, to, disabled, className, children, onClick }) {
   return (
     <button
       className={className}

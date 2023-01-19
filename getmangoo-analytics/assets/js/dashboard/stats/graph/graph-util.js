@@ -2,7 +2,9 @@ import { METRIC_LABELS, METRIC_FORMATTER } from './visitor-graph'
 import { parseUTCDate, formatMonthYYYY, formatDay } from '../../util/date'
 
 export const dateFormatter = (interval, longForm) => {
-  return function(isoDate, _index, _ticks) {
+  return function (isoDate, _index, _ticks) {
+    if (!isoDate) return '';
+
     let date = parseUTCDate(isoDate)
 
     if (interval === 'month') {
@@ -36,7 +38,8 @@ export const dateFormatter = (interval, longForm) => {
 export const GraphTooltip = (graphData, metric) => {
   return (context) => {
     const tooltipModel = context.tooltip;
-    const offset = document.getElementById("main-graph-canvas").getBoundingClientRect()
+    const hasPrevData = graphData['prev_labels'] && graphData['prev_plot'] ? true : false;
+    const offset = document.getElementById("main-graph-canvas").getBoundingClientRect();
 
     // Tooltip Element
     let tooltipEl = document.getElementById('chartjs-tooltip');
@@ -86,6 +89,23 @@ export const GraphTooltip = (graphData, metric) => {
       return !prev_label ? formattedLabel : prev_formattedLabel
     }
 
+
+    function renderPointInfo(label, point, metric, isPrevPoint) {
+      if (!label || (point !== 0 && !point)) return '';
+
+      const backgroundColor = isPrevPoint ? 'rgba(166,187,210,0.5)' : 'rgba(101,116,205)'
+
+      return `
+      <div class='flex flex-row justify-between items-center'>
+        <span class='flex items-center mr-4'>
+          <div class='w-3 h-3 mr-1 rounded-full' style='background-color: ${backgroundColor}'></div>
+          <span>${renderLabel(label)}</span>
+        </span>
+        <span class='text-base font-bold'>${METRIC_FORMATTER[metric](point)}</span>
+      </div>
+      `;
+    }
+
     // function renderComparison(change) {
     //   const formattedComparison = numberFormatter(Math.abs(change))
 
@@ -113,9 +133,9 @@ export const GraphTooltip = (graphData, metric) => {
       const label = graphData.labels[data.dataIndex]
       const point = data.raw || 0
 
-      // const prev_data = tooltipModel.dataPoints.slice(-1)[0]
-      // const prev_label = graphData.prev_labels && graphData.prev_labels[prev_data.dataIndex]
-      // const prev_point = prev_data.raw || 0
+      const prevData = hasPrevData ? tooltipModel.dataPoints.slice(-1)[0] : undefined
+      const prevLabel = hasPrevData ? graphData.prev_labels[prevData.dataIndex] : undefined
+      const prevPoint = hasPrevData ? prevData.raw || 0 : undefined
       // const pct_change = point === prev_point ? 0 : prev_point === 0 ? 100 : Math.round(((point - prev_point) / prev_point * 100).toFixed(1))
 
       let innerHtml = `
@@ -124,13 +144,8 @@ export const GraphTooltip = (graphData, metric) => {
 						<span class='font-semibold mr-4 text-lg'>${METRIC_LABELS[metric]}</span>
 				</div>
 				<div class='flex flex-col'>
-					<div class='flex flex-row justify-between items-center'>
-						<span class='flex items-center mr-4'>
-							<div class='w-3 h-3 mr-1 rounded-full' style='background-color: rgba(101,116,205)'></div>
-							<span>${renderLabel(label)}</span>
-						</span>
-						<span class='text-base font-bold'>${METRIC_FORMATTER[metric](point)}</span>
-					</div>
+					${renderPointInfo(label, point, metric, false)}
+					${renderPointInfo(prevLabel, prevPoint, metric, true)}
 				</div>
 				<span class='font-semibold italic'>${graphData.interval === 'month' ? 'Click to view month' : graphData.interval === 'date' ? 'Click to view day' : ''}</span>
 			</div>
@@ -201,7 +216,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
       label,
       data: plot,
       borderWidth: 2,
-      // borderDash: [10, 1],
+      borderDash: [10, 1],
       borderColor: 'rgba(166,187,210,0.5)',
       pointHoverBackgroundColor: 'rgba(166,187,210,0.8)',
       pointBorderColor: 'transparent',

@@ -38,7 +38,7 @@ class Realtime extends React.Component {
               <Filters className="flex" site={this.props.site} query={this.props.query} history={this.props.history} />
             </div>
             <Datepicker site={this.props.site} query={this.props.query} />
-            <ComparisonSelector site={props.site} query={props.query} />
+            <ComparisonSelector site={this.props.site} query={this.props.query} />
           </div>
         </div>
         <VisitorGraph site={this.props.site} query={this.props.query} timer={this.props.timer} />

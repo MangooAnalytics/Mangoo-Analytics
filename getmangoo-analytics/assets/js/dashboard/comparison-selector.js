@@ -2,13 +2,8 @@ import React, { Fragment } from "react";
 import { withRouter } from "react-router-dom";
 import { ChevronDownIcon } from '@heroicons/react/solid'
 import { Transition } from '@headlessui/react'
-
 import { QueryLink } from "./query";
-
-const COMPARISON_PERIOD_TEXT = {
-  "previus_period": "Previus period",
-  "same_period_last_year": "Same period last year"
-}
+import { getComparisonText, isComparisonAvailable } from "./util/comparison";
 
 class ComparisonSelector extends React.Component {
   constructor(props) {
@@ -18,7 +13,6 @@ class ComparisonSelector extends React.Component {
     this.toggle = this.toggle.bind(this);
     this.state = { open: false };
   }
-
 
   componentDidMount() {
     document.addEventListener("mousedown", this.handleClick, false);
@@ -45,38 +39,33 @@ class ComparisonSelector extends React.Component {
   renderPeriodTextSpan() {
     const { query } = this.props;
 
-    let periodText;
-    let periodTextClass;
-
-    periodText = COMPARISON_PERIOD_TEXT[query.comparison_period] ? COMPARISON_PERIOD_TEXT[query.comparison_period] : 'Compare to'
-    periodTextClass = periodText === 'Compare to' ? 'dark:text-gray-500' : ''
+    const periodText = getComparisonText(query.comparison_period);
+    const periodTextClass = periodText === 'Compare to' ? 'dark:text-gray-500' : ''
 
     return <span className={`${periodTextClass} font-medium`}>{periodText}</span>
   }
 
   renderLink(comparison_period, text) {
     const { query } = this.props;
-
-    let boldClass;
-    let placeHolderClass;
-
-    boldClass = query.comparison_period === comparison_period ? "font-bold" : "";
-    placeHolderClass = comparison_period === "" ? "dark:text-gray-500 dark:hover:text-gray-500" : "";
+    const isComparisonPeriodDisabled = comparison_period ? !isComparisonAvailable(query.period, comparison_period) : false;
+    const boldClass = isComparisonPeriodDisabled || comparison_period !== query.comparison_period ? "" : "font-bold";
+    const comparisonPeriodClasses = isComparisonPeriodDisabled ? "cursor-not-allowed dark:hover:bg-gray-700 dark:text-gray-500" : "dark:hover:bg-gray-900 dark:hover:text-gray-100";
+    const placeHolderClasses = comparison_period === "" ? "dark:text-gray-600 dark:hover:text-gray-600" : "";
 
     return (
       <QueryLink
-        to={{ from: false, to: false, comparison_period}}
+        to={{ comparison_period }}
         onClick={this.close}
         query={this.props.query}
-        className={`${boldClass} px-4 py-2 text-sm leading-tight flex items-center justify-between
-        hover:bg-gray-100 hover:text-gray-300 dark:hover:bg-gray-900 dark:hover:text-gray-100 ${placeHolderClass}`}
+        disabled={isComparisonPeriodDisabled}
+        className={`${boldClass} ${comparisonPeriodClasses} ${placeHolderClasses} px-4 py-2 text-sm leading-tight flex items-center justify-between`}
       >
         {text}
       </QueryLink>
     );
   }
 
-  renderDropDownContent() {
+  renderDropDownContent() {   
     return (
       <div
         id="selectormenu"
@@ -87,7 +76,7 @@ class ComparisonSelector extends React.Component {
           font-medium text-gray-800 dark:text-gray-200"
         >
           {this.renderLink("", "Compare to")}
-          {this.renderLink("previus_period", "Previus period")}
+          {this.renderLink("previous_period", "Previous period")}
           {this.renderLink("same_period_last_year", "Same period last year")}
         </div>
       </div>
@@ -95,6 +84,11 @@ class ComparisonSelector extends React.Component {
   }
 
   render() {
+    const { query } = this.props;
+    const minimumAvailableComparisonOption = 'previous_period';
+    const isComparisonDisabled = !isComparisonAvailable(query.period, minimumAvailableComparisonOption);
+    const comparisonClasses = isComparisonDisabled ? "cursor-not-allowed" : "hover:bg-gray-200 dark:hover:bg-gray-900"
+    
     return (
       <div className="flex ml-auto pl-2">
         <div
@@ -102,13 +96,13 @@ class ComparisonSelector extends React.Component {
           ref={(node) => (this.dropDownNode = node)}
         >
           <div
-            onClick={this.toggle}
-            onKeyPress={this.toggle}
-            className="flex items-center justify-between rounded bg-white dark:bg-gray-800 shadow px-2 md:px-3
+            onClick={isComparisonDisabled ? null : this.toggle}
+            onKeyPress={isComparisonDisabled ? null : this.toggle}
+            className={`flex items-center justify-between rounded bg-white dark:bg-gray-800 shadow px-2 md:px-3
             py-2 leading-tight cursor-pointer text-xs md:text-sm text-gray-800
-            dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-900"
+            dark:text-gray-200 ${comparisonClasses}`}
             tabIndex="0"
-            role="button"          
+            role="button"
             aria-haspopup="true"
             aria-expanded="false"
             aria-controls="selectormenu"
