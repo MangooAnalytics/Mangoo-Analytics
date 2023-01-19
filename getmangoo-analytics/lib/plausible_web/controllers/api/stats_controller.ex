@@ -25,7 +25,7 @@ defmodule PlausibleWeb.Api.StatsController do
         {prev_query_data, query_data} =
           site
           |> fetch_query_data(params)
-          |> normalize_comparison_data(query_data)
+          |> normalize_month_comparison_data(query_data)
 
         Map.merge(
           data,
@@ -74,32 +74,36 @@ defmodule PlausibleWeb.Api.StatsController do
     %{query: query, plot: plot, labels: labels}
   end
 
-  defp normalize_comparison_data(
+  defp normalize_month_comparison_data(
          %{plot: prev_plot} = prev_query_data,
          %{query: %Query{period: "month"}, plot: plot} = query_data
        )
        when length(prev_plot) > length(plot) do
     points_to_add = calculate_points_to_add(prev_plot, plot)
 
-    {prev_query_data, do_normalize_comparison_data(query_data, points_to_add)}
+    {prev_query_data, do_normalize_month_comparison_data(query_data, points_to_add)}
   end
 
-  defp normalize_comparison_data(
+  defp normalize_month_comparison_data(
          %{plot: prev_plot} = prev_query_data,
          %{query: %Query{period: "month"}, plot: plot} = query_data
        )
        when length(prev_plot) < length(plot) do
     points_to_add = calculate_points_to_add(plot, prev_plot)
 
-    {do_normalize_comparison_data(prev_query_data, points_to_add), query_data}
+    {do_normalize_month_comparison_data(prev_query_data, points_to_add), query_data}
   end
 
-  defp normalize_comparison_data(prev_query_data, query_data), do: {prev_query_data, query_data}
+  defp normalize_month_comparison_data(prev_query_data, query_data),
+    do: {prev_query_data, query_data}
 
-  defp do_normalize_comparison_data(%{plot: plot, labels: labels} = query_data, points_to_add) do
-    nil_points = Enum.map(1..points_to_add, fn _ -> nil end)
-
-    %{query_data | plot: Enum.concat(plot, nil_points), labels: Enum.concat(labels, nil_points)}
+  defp do_normalize_month_comparison_data(
+         %{plot: plot, labels: labels} = query_data,
+         points_to_add
+       ) do
+    query_data
+    |> Map.put(:plot, Enum.concat(plot, List.duplicate(nil, points_to_add)))
+    |> Map.put(:labels, Enum.concat(labels, List.duplicate("", points_to_add)))
   end
 
   defp calculate_points_to_add(plot_1, plot_2), do: length(plot_1) - length(plot_2)
