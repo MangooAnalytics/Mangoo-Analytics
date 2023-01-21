@@ -130,10 +130,12 @@ export const GraphTooltip = (graphData, metric) => {
       }
 
       const data = tooltipModel.dataPoints[0]
-      const label = graphData.labels[data.dataIndex]
-      const point = data.raw || 0
-
       const prevData = hasPrevData ? tooltipModel.dataPoints.slice(-1)[0] : undefined
+
+      const pointHasData = hasPrevData ? data.datasetIndex !== prevData.datasetIndex : true;
+
+      const label = pointHasData ? graphData.labels[data.dataIndex] : undefined
+      const point = pointHasData ? data.raw || 0 : undefined
       const prevLabel = hasPrevData ? graphData.prev_labels[prevData.dataIndex] : undefined
       const prevPoint = hasPrevData ? prevData.raw || 0 : undefined
       // const pct_change = point === prev_point ? 0 : prev_point === 0 ? 100 : Math.round(((point - prev_point) / prev_point * 100).toFixed(1))
