@@ -60,7 +60,7 @@ class LineGraph extends React.Component {
     const graphEl = document.getElementById("main-graph-canvas")
     this.ctx = graphEl.getContext('2d');
     const dataSet = buildDataSet(graphData.plot, graphData.present_index, this.ctx, METRIC_LABELS[metric])
-    const prevDataSet = graphData.prev_plot && buildDataSet(graphData.prev_plot, false, this.ctx, METRIC_LABELS[metric], true)
+    const prevDataSet = graphData.prev_labels && graphData.prev_plot && buildDataSet(graphData.prev_plot, false, this.ctx, METRIC_LABELS[metric], true)
     const combinedDataSets = prevDataSet ? [...dataSet, ...prevDataSet] : dataSet;
 
     return new Chart(this.ctx, {
