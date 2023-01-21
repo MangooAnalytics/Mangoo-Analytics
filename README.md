@@ -10,6 +10,8 @@ We leverage Plausible's open source software to get started. Plausible Analytics
 
 Our Modifications are as follows:
 
+- Jan 2023: Added comparison options to main charts. Users will now be able to comapre to previous periods or same period in the previous year to compare performance over time
+
 - Dec 2022: Removed Google console integration as we look forward to adding other integration and might bring back the google integration in the future. ‍
 
 - Nov 2022: Light Modification to branding and front end design to match Mangoo's style
