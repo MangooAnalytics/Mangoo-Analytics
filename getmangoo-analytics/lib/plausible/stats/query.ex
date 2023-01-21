@@ -8,6 +8,31 @@ defmodule Plausible.Stats.Query do
 
   @default_sample_threshold 20_000_000
 
+  @previous_period "previous_period"
+  @same_period_last_year "same_period_last_year"
+
+  @available_comparison_by_period %{
+    "day" => [@previous_period, @same_period_last_year],
+    "7d" => [@previous_period, @same_period_last_year],
+    "30d" => [@previous_period, @same_period_last_year],
+    "month" => [@previous_period, @same_period_last_year],
+    "6mo" => [@previous_period, @same_period_last_year],
+    "year" => [@previous_period],
+    "12mo" => [@previous_period]
+  }
+
+  @previous_period_shift_option %{
+    "day" => [days: -1],
+    "7d" => [days: -7],
+    "30d" => [days: -31],
+    "month" => [months: -1],
+    "6mo" => [months: -6],
+    "year" => [years: -1],
+    "12mo" => [years: -1]
+  }
+
+  @same_period_last_year_not_available ["12mo", "year"]
+
   def shift_back(%__MODULE__{period: "year"} = query, site) do
     # Querying current year to date
     {new_first, new_last} =
@@ -61,6 +86,17 @@ defmodule Plausible.Stats.Query do
     Map.put(query, :date_range, Date.range(new_first, new_last))
   end
 
+  def is_period_comparison_available?(
+        %{
+          "period" => period,
+          "comparison_period" => comparison_period
+        } = _params
+      )
+      when is_map_key(@available_comparison_by_period, period),
+      do: comparison_period in Map.get(@available_comparison_by_period, period)
+
+  def is_period_comparison_available?(_params), do: false
+
   def from(site, %{"period" => "realtime"} = params) do
     date = today(site.timezone)
 
@@ -72,118 +108,6 @@ defmodule Plausible.Stats.Query do
       sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold),
       include_imported: false
     }
-  end
-
-  def from(site, %{"period" => "day"} = params) do
-    date = parse_single_date(site.timezone, params)
-
-    %__MODULE__{
-      period: "day",
-      date_range: Date.range(date, date),
-      interval: "hour",
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "7d"} = params) do
-    end_date = parse_single_date(site.timezone, params)
-    start_date = end_date |> Timex.shift(days: -6)
-
-    %__MODULE__{
-      period: "7d",
-      date_range: Date.range(start_date, end_date),
-      interval: "date",
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "30d"} = params) do
-    end_date = parse_single_date(site.timezone, params)
-    start_date = end_date |> Timex.shift(days: -30)
-
-    %__MODULE__{
-      period: "30d",
-      date_range: Date.range(start_date, end_date),
-      interval: "date",
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "month"} = params) do
-    date = parse_single_date(site.timezone, params)
-
-    start_date = Timex.beginning_of_month(date)
-    end_date = Timex.end_of_month(date)
-
-    %__MODULE__{
-      period: "month",
-      date_range: Date.range(start_date, end_date),
-      interval: "date",
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "6mo"} = params) do
-    end_date =
-      parse_single_date(site.timezone, params)
-      |> Timex.end_of_month()
-
-    start_date =
-      Timex.shift(end_date, months: -5)
-      |> Timex.beginning_of_month()
-
-    %__MODULE__{
-      period: "6mo",
-      date_range: Date.range(start_date, end_date),
-      interval: Map.get(params, "interval", "month"),
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "12mo"} = params) do
-    end_date =
-      parse_single_date(site.timezone, params)
-      |> Timex.end_of_month()
-
-    start_date =
-      Timex.shift(end_date, months: -11)
-      |> Timex.beginning_of_month()
-
-    %__MODULE__{
-      period: "12mo",
-      date_range: Date.range(start_date, end_date),
-      interval: Map.get(params, "interval", "month"),
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
-  end
-
-  def from(site, %{"period" => "year"} = params) do
-    end_date =
-      parse_single_date(site.timezone, params)
-      |> Timex.end_of_year()
-
-    start_date = Timex.beginning_of_year(end_date)
-
-    %__MODULE__{
-      period: "year",
-      date_range: Date.range(start_date, end_date),
-      interval: Map.get(params, "interval", "month"),
-      filters: parse_filters(params),
-      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
-    }
-    |> maybe_include_imported(site, params)
   end
 
   def from(site, %{"period" => "all"} = params) do
@@ -251,8 +175,131 @@ defmodule Plausible.Stats.Query do
     |> maybe_include_imported(site, params)
   end
 
+  def from(site, %{"period" => period, "comparison_period" => @previous_period} = params)
+      when is_map_key(@previous_period_shift_option, period) do
+    site.timezone
+    |> parse_single_date(params)
+    |> Timex.shift(Map.get(@previous_period_shift_option, period))
+    |> do_from(site, params)
+  end
+
+  def from(site, %{"period" => period, "comparison_period" => @same_period_last_year} = params)
+      when period not in @same_period_last_year_not_available do
+    site.timezone
+    |> parse_single_date(params)
+    |> Timex.shift(years: -1)
+    |> do_from(site, params)
+  end
+
+  def from(site, %{"period" => _period} = params) do
+    site.timezone
+    |> parse_single_date(params)
+    |> do_from(site, params)
+  end
+
   def from(tz, params) do
     __MODULE__.from(tz, Map.merge(params, %{"period" => "30d"}))
+  end
+
+  defp do_from(date, site, %{"period" => "day"} = params) do
+    %__MODULE__{
+      period: "day",
+      date_range: Date.range(date, date),
+      interval: "hour",
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(end_date, site, %{"period" => "7d"} = params) do
+    start_date = Timex.shift(end_date, days: -6)
+
+    %__MODULE__{
+      period: "7d",
+      date_range: Date.range(start_date, end_date),
+      interval: "date",
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(end_date, site, %{"period" => "30d"} = params) do
+    start_date = Timex.shift(end_date, days: -30)
+
+    %__MODULE__{
+      period: "30d",
+      date_range: Date.range(start_date, end_date),
+      interval: "date",
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(date, site, %{"period" => "month"} = params) do
+    start_date = Timex.beginning_of_month(date)
+    end_date = Timex.end_of_month(date)
+
+    %__MODULE__{
+      period: "month",
+      date_range: Date.range(start_date, end_date),
+      interval: "date",
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(date, site, %{"period" => "6mo"} = params) do
+    end_date = Timex.end_of_month(date)
+
+    start_date =
+      end_date
+      |> Timex.shift(months: -5)
+      |> Timex.beginning_of_month()
+
+    %__MODULE__{
+      period: "6mo",
+      date_range: Date.range(start_date, end_date),
+      interval: Map.get(params, "interval", "month"),
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(date, site, %{"period" => "12mo"} = params) do
+    end_date = Timex.end_of_month(date)
+
+    start_date =
+      end_date
+      |> Timex.shift(months: -11)
+      |> Timex.beginning_of_month()
+
+    %__MODULE__{
+      period: "12mo",
+      date_range: Date.range(start_date, end_date),
+      interval: Map.get(params, "interval", "month"),
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
+  end
+
+  defp do_from(date, site, %{"period" => "year"} = params) do
+    end_date = Timex.end_of_year(date)
+    start_date = Timex.beginning_of_year(end_date)
+
+    %__MODULE__{
+      period: "year",
+      date_range: Date.range(start_date, end_date),
+      interval: Map.get(params, "interval", "month"),
+      filters: parse_filters(params),
+      sample_threshold: Map.get(params, "sample_threshold", @default_sample_threshold)
+    }
+    |> maybe_include_imported(site, params)
   end
 
   def put_filter(query, key, val) do

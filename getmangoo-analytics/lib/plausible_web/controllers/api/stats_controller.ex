@@ -3,11 +3,51 @@ defmodule PlausibleWeb.Api.StatsController do
   use Plausible.Repo
   use Plug.ErrorHandler
   alias Plausible.Stats
-  alias Plausible.Stats.{Query, Filters}
+  alias Plausible.Stats.{Filters, Query}
 
   def main_graph(conn, params) do
     site = conn.assigns[:site]
-    query = Query.from(site, params) |> Filters.add_prefix()
+
+    query_data = fetch_query_data(site, Map.delete(params, "comparison_period"))
+    present_index = present_index_for(site, query_data[:query], query_data[:labels])
+
+    data = %{
+      plot: query_data[:plot],
+      labels: query_data[:labels],
+      present_index: present_index,
+      interval: query_data[:query].interval,
+      with_imported: query_data[:query].include_imported,
+      imported_source: site.imported_data && site.imported_data.source
+    }
+
+    data =
+      if params["comparison_period"] && Query.is_period_comparison_available?(params) do
+        {prev_query_data, query_data} =
+          site
+          |> fetch_query_data(params)
+          |> normalize_month_comparison_data(query_data)
+
+        Map.merge(
+          data,
+          %{
+            plot: query_data[:plot],
+            labels: query_data[:labels],
+            prev_plot: prev_query_data[:plot],
+            prev_labels: prev_query_data[:labels]
+          }
+        )
+      else
+        data
+      end
+
+    json(conn, data)
+  end
+
+  defp fetch_query_data(site, params) do
+    query =
+      site
+      |> Query.from(params)
+      |> Filters.add_prefix()
 
     selected_metric =
       if !params["metric"] || params["metric"] == "conversions" do
@@ -30,17 +70,43 @@ defmodule PlausibleWeb.Api.StatsController do
       Enum.map(timeseries_result, fn row -> row[String.to_existing_atom(selected_metric)] || 0 end)
 
     labels = Enum.map(timeseries_result, fn row -> row[:date] end)
-    present_index = present_index_for(site, query, labels)
 
-    json(conn, %{
-      plot: plot,
-      labels: labels,
-      present_index: present_index,
-      interval: query.interval,
-      with_imported: query.include_imported,
-      imported_source: site.imported_data && site.imported_data.source
-    })
+    %{query: query, plot: plot, labels: labels}
   end
+
+  defp normalize_month_comparison_data(
+         %{plot: prev_plot} = prev_query_data,
+         %{query: %Query{period: "month"}, plot: plot} = query_data
+       )
+       when length(prev_plot) > length(plot) do
+    points_to_add = calculate_points_to_add(prev_plot, plot)
+
+    {prev_query_data, do_normalize_month_comparison_data(query_data, points_to_add)}
+  end
+
+  defp normalize_month_comparison_data(
+         %{plot: prev_plot} = prev_query_data,
+         %{query: %Query{period: "month"}, plot: plot} = query_data
+       )
+       when length(prev_plot) < length(plot) do
+    points_to_add = calculate_points_to_add(plot, prev_plot)
+
+    {do_normalize_month_comparison_data(prev_query_data, points_to_add), query_data}
+  end
+
+  defp normalize_month_comparison_data(prev_query_data, query_data),
+    do: {prev_query_data, query_data}
+
+  defp do_normalize_month_comparison_data(
+         %{plot: plot, labels: labels} = query_data,
+         points_to_add
+       ) do
+    query_data
+    |> Map.put(:plot, Enum.concat(plot, List.duplicate(nil, points_to_add)))
+    |> Map.put(:labels, Enum.concat(labels, List.duplicate("", points_to_add)))
+  end
+
+  defp calculate_points_to_add(plot_1, plot_2), do: length(plot_1) - length(plot_2)
 
   def top_stats(conn, params) do
     site = conn.assigns[:site]

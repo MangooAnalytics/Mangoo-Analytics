@@ -21,7 +21,20 @@ import {
   isBefore,
   isAfter,
 } from "./util/date";
+import { isComparisonAvailable } from "./util/comparison";
 import { navigateToQuery, QueryLink, QueryButton } from "./query";
+
+const KEYBINDS = {
+  'Today': 'D',
+  'Realtime': 'R',
+  'Last 7 days': 'W',
+  'Month to Date': 'M',
+  'Year to Date': 'Y',
+  'Last 12 months': 'L',
+  'Last 30 days': 'T',
+  'All time': 'A',
+};
+
 
 function renderArrow(query, site, period, prevDate, nextDate) {
   const insertionDate = parseUTCDate(site.statsBegin);
@@ -37,11 +50,9 @@ function renderArrow(query, site, period, prevDate, nextDate) {
   );
 
   const leftClasses = `flex items-center px-1 sm:px-2 border-r border-gray-300 rounded-l
-      dark:border-gray-500 dark:text-gray-100 ${
-      disabledLeft ? "bg-gray-300 dark:bg-gray-950" : "hover:bg-gray-100 dark:hover:bg-gray-900"
+      dark:border-gray-500 dark:text-gray-100 ${disabledLeft ? "bg-gray-300 dark:bg-gray-950" : "hover:bg-gray-100 dark:hover:bg-gray-900"
     }`;
-  const rightClasses = `flex items-center px-1 sm:px-2 rounded-r dark:text-gray-100 ${
-      disabledRight ? "bg-gray-300 dark:bg-gray-950" : "hover:bg-gray-100 dark:hover:bg-gray-900"
+  const rightClasses = `flex items-center px-1 sm:px-2 rounded-r dark:text-gray-100 ${disabledRight ? "bg-gray-300 dark:bg-gray-950" : "hover:bg-gray-100 dark:hover:bg-gray-900"
     }`;
   return (
     <div className="flex rounded shadow bg-white mr-2 sm:mr-4 cursor-pointer dark:bg-gray-800">
@@ -87,7 +98,7 @@ function renderArrow(query, site, period, prevDate, nextDate) {
   );
 }
 
-function DatePickerArrows({site, query}) {
+function DatePickerArrows({ site, query }) {
   if (query.period === "year") {
     const prevDate = formatISO(shiftMonths(query.date, -12));
     const nextDate = formatISO(shiftMonths(query.date, 12));
@@ -138,6 +149,7 @@ class DatePicker extends React.Component {
 
     const newSearch = {
       period: false,
+      comparison_period: query.comparison_period,
       from: false,
       to: false,
       date: false,
@@ -178,16 +190,20 @@ class DatePicker extends React.Component {
       }
     }
 
-    this.setState({open: false});
+
+    this.setState({ open: false });
 
     const keys = ['d', 'e', 'r', 'w', 'm', 'y', 't', 's', 'l', 'a'];
-    const redirects = [{date: false, period: 'day'}, {date: formatISO(shiftDays(nowForSite(this.props.site), -1)), period: 'day'}, {period: 'realtime'}, {date: false, period: '7d'}, {date: false, period: 'month'}, {date: false, period: 'year'}, {date: false, period: '30d'}, {date: false, period: '6mo'}, {date: false, period: '12mo'}, {date: false, period: 'all'}];
+    const redirects = [{ date: false, period: 'day' }, { date: formatISO(shiftDays(nowForSite(this.props.site), -1)), period: 'day' }, { period: 'realtime' }, { date: false, period: '7d' }, { date: false, period: 'month' }, { date: false, period: 'year' }, { date: false, period: '30d' }, { date: false, period: '6mo' }, { date: false, period: '12mo' }, { date: false, period: 'all' }];
 
     if (keys.includes(e.key.toLowerCase())) {
-      navigateToQuery(history, query, {...newSearch, ...(redirects[keys.indexOf(e.key.toLowerCase())])});
+      const redirectsData = { ...(redirects[keys.indexOf(e.key.toLowerCase())]) }
+      if (!isComparisonAvailable(redirectsData.period, newSearch.comparison_period)) newSearch.comparison_period = false;
+      navigateToQuery(history, query, { ...newSearch, ...redirectsData });
     } else if (e.key.toLowerCase() === 'c') {
-      this.setState({mode: 'calendar', open: true}, this.openCalendar);
+      this.setState({ mode: 'calendar', open: true }, this.openCalendar);
     } else if (newSearch.date) {
+      if (!isComparisonAvailable(newSearch.period, newSearch.comparison_period)) newSearch.comparison_period = false;
       navigateToQuery(history, query, newSearch);
     }
   }
@@ -218,6 +234,7 @@ class DatePicker extends React.Component {
           this.props.query,
           {
             period: 'custom',
+            comparison_period: false,
             date: false,
             from: formatISO(from),
             to: formatISO(to),
@@ -278,6 +295,7 @@ class DatePicker extends React.Component {
   renderLink(period, text, opts = {}) {
     const { query, site } = this.props;
     let boldClass;
+    let comparison_period = query.comparison_period;
     if (query.period === "day" && period === "day") {
       boldClass = isToday(site, query.date) ? "font-bold" : "";
     } else if (query.period === "month" && period === "month") {
@@ -286,30 +304,19 @@ class DatePicker extends React.Component {
     } else {
       boldClass = query.period === period ? "font-bold" : "";
     }
-
+    if (!isComparisonAvailable(period, comparison_period)) comparison_period = false;
     opts.date = opts.date ? formatISO(opts.date) : false;
-
-    const keybinds = {
-      'Today': 'D',
-      'Realtime': 'R',
-      'Last 7 days': 'W',
-      'Month to Date': 'M',
-      'Year to Date': 'Y',
-      'Last 12 months': 'L',
-      'Last 30 days': 'T',
-      'All time': 'A',
-    };
 
     return (
       <QueryLink
-        to={{from: false, to: false, period, ...opts}}
+        to={{ from: false, to: false, period, comparison_period, ...opts }}
         onClick={this.close}
         query={this.props.query}
-        className={`${boldClass  } px-4 py-2 text-sm leading-tight hover:bg-gray-100 hover:text-gray-900
+        className={`${boldClass} px-4 py-2 text-sm leading-tight hover:bg-gray-100 hover:text-gray-900
           dark:hover:bg-gray-900 dark:hover:text-gray-100 flex items-center justify-between`}
       >
         {text}
-        <span className='font-normal'>{keybinds[text]}</span>
+        <span className='font-normal'>{KEYBINDS[text]}</span>
       </QueryLink>
     );
   }
@@ -336,8 +343,8 @@ class DatePicker extends React.Component {
               {this.renderLink("30d", "Last 30 days")}
             </div>
             <div className="py-1 border-b border-gray-200 dark:border-gray-500 date-option-group">
-              { this.renderLink('month', 'Month to Date') }
-              { this.renderLink('month', 'Last month', {date: lastMonth(site)}) }
+              {this.renderLink('month', 'Month to Date')}
+              {this.renderLink('month', 'Last month', { date: lastMonth(site) })}
             </div>
             <div className="py-1 border-b border-gray-200 dark:border-gray-500 date-option-group">
               {this.renderLink("year", "Year to Date")}
@@ -346,8 +353,8 @@ class DatePicker extends React.Component {
             <div className="py-1 date-option-group">
               {this.renderLink("all", "All time")}
               <span
-                onClick={() => this.setState({mode: 'calendar'}, this.openCalendar)}
-                onKeyPress={() => this.setState({mode: 'calendar'}, this.openCalendar)}
+                onClick={() => this.setState({ mode: 'calendar' }, this.openCalendar)}
+                onKeyPress={() => this.setState({ mode: 'calendar' }, this.openCalendar)}
                 className="px-4 py-2 text-sm leading-tight hover:bg-gray-100
                   dark:hover:bg-gray-900 hover:text-gray-900 dark:hover:text-gray-100
                   cursor-pointer flex items-center justify-between"
@@ -377,13 +384,14 @@ class DatePicker extends React.Component {
               minDate: dayBeforeCreation,
               showMonths: 1,
               static: true,
-              animate: true}}
+              animate: true
+            }}
             ref={calendar => this.calendar = calendar}
             className="invisible"
             onChange={this.setCustomDate}
           />
         </div>
-        )
+      )
     }
   }
 

@@ -2,11 +2,11 @@ import React from 'react';
 import { withRouter, Link } from 'react-router-dom'
 import Chart from 'chart.js/auto';
 import { navigateToQuery } from '../../query'
-import numberFormatter, {durationFormatter} from '../../util/number-formatter'
+import numberFormatter, { durationFormatter } from '../../util/number-formatter'
 import * as api from '../../api'
 import * as storage from '../../util/storage'
 import LazyLoader from '../../components/lazy-loader'
-import {GraphTooltip, buildDataSet, dateFormatter} from './graph-util';
+import { GraphTooltip, buildDataSet, dateFormatter } from './graph-util';
 import TopStats from './top-stats';
 import * as url from '../../util/url'
 
@@ -49,7 +49,7 @@ class LineGraph extends React.Component {
   constructor(props) {
     super(props);
     this.regenerateChart = this.regenerateChart.bind(this);
-    this.updateWindowDimensions =  this.updateWindowDimensions.bind(this);
+    this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
     this.state = {
       exported: false
     };
@@ -60,14 +60,14 @@ class LineGraph extends React.Component {
     const graphEl = document.getElementById("main-graph-canvas")
     this.ctx = graphEl.getContext('2d');
     const dataSet = buildDataSet(graphData.plot, graphData.present_index, this.ctx, METRIC_LABELS[metric])
-    // const prev_dataSet = graphData.prev_plot && buildDataSet(graphData.prev_plot, false, this.ctx, METRIC_LABELS[metric], true)
-    // const combinedDataSets = comparison.enabled && prev_dataSet ? [...dataSet, ...prev_dataSet] : dataSet;
+    const prevDataSet = graphData.prev_plot && buildDataSet(graphData.prev_plot, false, this.ctx, METRIC_LABELS[metric], true)
+    const combinedDataSets = prevDataSet ? [...dataSet, ...prevDataSet] : dataSet;
 
     return new Chart(this.ctx, {
       type: 'line',
       data: {
         labels: graphData.labels,
-        datasets: dataSet
+        datasets: combinedDataSets
       },
       options: {
         animation: false,
@@ -102,7 +102,7 @@ class LineGraph extends React.Component {
             grid: { display: false },
             ticks: {
               maxTicksLimit: 8,
-              callback: function(val, _index, _ticks) { return dateFormatter(graphData.interval)(this.getLabelForValue(val)) },
+              callback: function (val, _index, _ticks) { return dateFormatter(graphData.interval)(this.getLabelForValue(val)) },
               color: this.props.darkTheme ? 'rgb(243, 244, 246)' : undefined
             }
           }
@@ -216,12 +216,12 @@ class LineGraph extends React.Component {
     if (document.cookie.includes('exporting')) {
       setTimeout(this.pollExportReady.bind(this), 1000);
     } else {
-      this.setState({exported: false})
+      this.setState({ exported: false })
     }
   }
 
   downloadSpinner() {
-    this.setState({exported: true});
+    this.setState({ exported: true });
     document.cookie = "exporting=";
     setTimeout(this.pollExportReady.bind(this), 1000);
   }
@@ -239,10 +239,10 @@ class LineGraph extends React.Component {
           </div>
         )
       } else {
-        const endpoint = `/${encodeURIComponent(this.props.site.domain)}/export${api.serializeQuery(this.props.query)}`
+        let endpoint = `/${encodeURIComponent(this.props.site.domain)}/export`
 
         return (
-          <a className="w-4 h-4 mx-2" href={endpoint} download onClick={this.downloadSpinner.bind(this)}>
+          <a className="w-4 h-4 mx-2" href={`${api.serializeQuery(endpoint, this.props.query)}`} download onClick={this.downloadSpinner.bind(this)}>
             <svg className="absolute text-gray-700 feather dark:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </a>
         )
@@ -270,14 +270,14 @@ class LineGraph extends React.Component {
     if (source) {
       const withImported = this.props.topStatData.with_imported;
       const strike = withImported ? "" : " line-through"
-      const target =  url.setQuery('with_imported', !withImported)
+      const target = url.setQuery('with_imported', !withImported)
       const tip = withImported ? "" : "do not ";
 
       return (
         <Link to={target} className="w-4 h-4 mx-2">
           <div tooltip={`Stats ${tip}include data imported from ${source}.`} className="cursor-pointer w-4 h-4">
             <svg className="absolute dark:text-gray-300 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <text x="4" y="18" fontSize="24" fill="currentColor" className={"text-gray-700 dark:text-gray-300" + strike}>{ source[0].toUpperCase() }</text>
+              <text x="4" y="18" fontSize="24" fill="currentColor" className={"text-gray-700 dark:text-gray-300" + strike}>{source[0].toUpperCase()}</text>
             </svg>
           </div>
         </Link>
@@ -292,13 +292,13 @@ class LineGraph extends React.Component {
     return (
       <div className="graph-inner">
         <div className="flex flex-wrap">
-          <TopStats query={query} metric={metric} updateMetric={updateMetric} topStatData={topStatData}/>
+          <TopStats query={query} metric={metric} updateMetric={updateMetric} topStatData={topStatData} />
         </div>
         <div className="relative px-2">
           <div className="absolute right-4 -top-10 flex">
             {this.downloadLink()}
             {this.samplingNotice()}
-            { this.importedNotice() }
+            {this.importedNotice()}
           </div>
           <canvas id="main-graph-canvas" className={'mt-4 select-none ' + extraClass} width="1054" height="342"></canvas>
         </div>
@@ -341,7 +341,7 @@ export default class VisitorGraph extends React.Component {
     }
 
     if (metric !== prevState.metric) {
-      this.setState({loading: 1, graphData: null})
+      this.setState({ loading: 1, graphData: null })
       this.fetchGraphData()
     }
 
@@ -371,23 +371,23 @@ export default class VisitorGraph extends React.Component {
 
   fetchGraphData() {
     if (this.state.metric) {
-      api.get(`/api/stats/${encodeURIComponent(this.props.site.domain)}/main-graph`, this.props.query, {metric: this.state.metric || 'none'})
-      .then((res) => {
-        this.setState((state) => ({ loading: state.loading-2, graphData: res }))
-        return res
-      })
+      api.get(`/api/stats/${encodeURIComponent(this.props.site.domain)}/main-graph`, this.props.query, { metric: this.state.metric || 'none' })
+        .then((res) => {
+          this.setState((state) => ({ loading: state.loading - 2, graphData: res }))
+          return res
+        })
     } else {
-      this.setState((state) => ({ loading: state.loading-2, graphData: null }))
+      this.setState((state) => ({ loading: state.loading - 2, graphData: null }))
     }
   }
 
   fetchTopStatData() {
     api.get(`/api/stats/${encodeURIComponent(this.props.site.domain)}/top-stats`, this.props.query)
       .then((res) => {
-        this.setState((state) => ({ loading: state.loading-1, topStatData: res }))
+        this.setState((state) => ({ loading: state.loading - 1, topStatData: res }))
         return res
       })
-    }
+  }
 
   renderInner() {
     const { query, site } = this.props;
@@ -397,13 +397,13 @@ export default class VisitorGraph extends React.Component {
 
     if ((loading <= 1 && topStatData) || (topStatData && graphData)) {
       return (
-          <LineGraphWithRouter graphData={graphData} topStatData={topStatData} site={site} query={query} darkTheme={theme} metric={metric} updateMetric={this.updateMetric} />
+        <LineGraphWithRouter graphData={graphData} topStatData={topStatData} site={site} query={query} darkTheme={theme} metric={metric} updateMetric={this.updateMetric} />
       )
     }
   }
 
   render() {
-    const {metric, topStatData, graphData} = this.state
+    const { metric, topStatData, graphData } = this.state
 
     return (
       <LazyLoader onVisible={this.onVisible}>

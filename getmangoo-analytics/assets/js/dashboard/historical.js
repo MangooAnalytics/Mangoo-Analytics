@@ -1,5 +1,6 @@
 import React from 'react';
 
+import ComparisonSelector from './comparison-selector'
 import Datepicker from './datepicker'
 import SiteSwitcher from './site-switcher'
 import Filters from './filters'
@@ -36,6 +37,7 @@ function Historical(props) {
             <Filters className="flex" site={props.site} query={props.query} history={props.history} />
           </div>
           <Datepicker site={props.site} query={props.query} />
+          <ComparisonSelector site={props.site} query={props.query} />
         </div>
       </div>
       <VisitorGraph site={props.site} query={props.query} />
