@@ -127,14 +127,12 @@ export const GraphTooltip = (graphData, metric) => {
       }
 
       const data = tooltipModel.dataPoints[0]
+      const label = !data.dataset.isPrevious ? graphData.labels[data.dataIndex] : undefined
+      const point = !data.dataset.isPrevious ? data.raw || 0 : undefined
+
       const prevData = hasPrevData ? tooltipModel.dataPoints.slice(-1)[0] : undefined
-
-      const pointHasData = hasPrevData ? data.datasetIndex !== prevData.datasetIndex : true;
-
-      const label = pointHasData ? graphData.labels[data.dataIndex] : undefined
-      const point = pointHasData ? data.raw || 0 : undefined
-      const prevLabel = hasPrevData ? graphData.prev_labels[prevData.dataIndex] : undefined
-      const prevPoint = hasPrevData ? prevData.raw || 0 : undefined
+      const prevLabel = prevData && prevData.dataset.isPrevious ? graphData.prev_labels[prevData.dataIndex] : undefined
+      const prevPoint = prevData && prevData.dataset.isPrevious ? prevData.raw || 0 : undefined
       // const pct_change = point === prev_point ? 0 : prev_point === 0 ? 100 : Math.round(((point - prev_point) / prev_point * 100).toFixed(1))
 
       let innerHtml = `
@@ -184,6 +182,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       },
       {
         label,
@@ -196,6 +195,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       }]
     } else {
       return [{
@@ -208,6 +208,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       }]
     }
   } else {
@@ -223,6 +224,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
       pointHoverRadius: 4,
       backgroundColor: prev_gradient,
       fill: true,
+      isPrevious: isPrevious
     }]
   }
 }
