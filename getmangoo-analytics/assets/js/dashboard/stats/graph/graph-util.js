@@ -1,20 +1,17 @@
 import { METRIC_LABELS, METRIC_FORMATTER } from './visitor-graph'
-import { parseUTCDate, formatMonthYYYY, formatDay } from '../../util/date'
+import { parseDate, formatMonthYYYY, formatDay } from '../../util/date'
 
 export const dateFormatter = (interval, longForm) => {
   return function (isoDate, _index, _ticks) {
     if (!isoDate) return '';
 
-    let date = parseUTCDate(isoDate)
+    let date = parseDate(isoDate)
 
     if (interval === 'month') {
       return formatMonthYYYY(date);
     } else if (interval === 'date') {
       return formatDay(date);
     } else if (interval === 'hour') {
-      const parts = isoDate.split(/[^0-9]/);
-      date = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5])
-
       const dateFormat = Intl.DateTimeFormat(navigator.language, { hour: 'numeric' })
       const twelveHourClock = dateFormat.resolvedOptions().hour12
       const formattedHours = dateFormat.format(date)
