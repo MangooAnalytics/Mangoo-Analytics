@@ -5,28 +5,32 @@ export const dateFormatter = (interval, longForm) => {
   return function (isoDate, _index, _ticks) {
     if (!isoDate) return '';
 
-    let date = parseDate(isoDate)
 
-    if (interval === 'month') {
-      return formatMonthYYYY(date);
-    } else if (interval === 'date') {
-      return formatDay(date);
-    } else if (interval === 'hour') {
-      const dateFormat = Intl.DateTimeFormat(navigator.language, { hour: 'numeric' })
-      const twelveHourClock = dateFormat.resolvedOptions().hour12
-      const formattedHours = dateFormat.format(date)
-
-      if (twelveHourClock) {
-        return formattedHours.replace(' ', '').toLowerCase()
-      } else {
-        return formattedHours.replace(/[^0-9]/g, '').concat(":00")
-      }
-    } else if (interval === 'minute') {
+    if (interval === 'minute') {
       if (longForm) {
-        const minutesAgo = Math.abs(isoDate)
-        return minutesAgo === 1 ? '1 minute ago' : minutesAgo + ' minutes ago'
+        const minutesAgo = Math.abs(isoDate);
+        return minutesAgo === 1 ? '1 minute ago' : minutesAgo + ' minutes ago';
       } else {
-        return isoDate + 'm'
+        return isoDate + 'm';
+      }
+    }
+    else {
+      const date = parseDate(isoDate);
+
+      if (interval === 'month') {
+        return formatMonthYYYY(date);
+      } else if (interval === 'date') {
+        return formatDay(date);
+      } else if (interval === 'hour') {
+        const dateFormat = Intl.DateTimeFormat(navigator.language, { hour: 'numeric' });
+        const twelveHourClock = dateFormat.resolvedOptions().hour12;
+        const formattedHours = dateFormat.format(date);
+
+        if (twelveHourClock) {
+          return formattedHours.replace(' ', '').toLowerCase();
+        } else {
+          return formattedHours.replace(/[^0-9]/g, '').concat(":00");
+        }
       }
     }
   }
