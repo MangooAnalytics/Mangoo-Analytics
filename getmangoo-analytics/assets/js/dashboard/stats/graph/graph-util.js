@@ -1,35 +1,36 @@
 import { METRIC_LABELS, METRIC_FORMATTER } from './visitor-graph'
-import { parseUTCDate, formatMonthYYYY, formatDay } from '../../util/date'
+import { parseDate, formatMonthYYYY, formatDay } from '../../util/date'
 
 export const dateFormatter = (interval, longForm) => {
   return function (isoDate, _index, _ticks) {
     if (!isoDate) return '';
 
-    let date = parseUTCDate(isoDate)
 
-    if (interval === 'month') {
-      return formatMonthYYYY(date);
-    } else if (interval === 'date') {
-      return formatDay(date);
-    } else if (interval === 'hour') {
-      const parts = isoDate.split(/[^0-9]/);
-      date = new Date(parts[0], parts[1] - 1, parts[2], parts[3], parts[4], parts[5])
-
-      const dateFormat = Intl.DateTimeFormat(navigator.language, { hour: 'numeric' })
-      const twelveHourClock = dateFormat.resolvedOptions().hour12
-      const formattedHours = dateFormat.format(date)
-
-      if (twelveHourClock) {
-        return formattedHours.replace(' ', '').toLowerCase()
-      } else {
-        return formattedHours.replace(/[^0-9]/g, '').concat(":00")
-      }
-    } else if (interval === 'minute') {
+    if (interval === 'minute') {
       if (longForm) {
-        const minutesAgo = Math.abs(isoDate)
-        return minutesAgo === 1 ? '1 minute ago' : minutesAgo + ' minutes ago'
+        const minutesAgo = Math.abs(isoDate);
+        return minutesAgo === 1 ? '1 minute ago' : minutesAgo + ' minutes ago';
       } else {
-        return isoDate + 'm'
+        return isoDate + 'm';
+      }
+    }
+    else {
+      const date = parseDate(isoDate);
+
+      if (interval === 'month') {
+        return formatMonthYYYY(date);
+      } else if (interval === 'date') {
+        return formatDay(date);
+      } else if (interval === 'hour') {
+        const dateFormat = Intl.DateTimeFormat(navigator.language, { hour: 'numeric' });
+        const twelveHourClock = dateFormat.resolvedOptions().hour12;
+        const formattedHours = dateFormat.format(date);
+
+        if (twelveHourClock) {
+          return formattedHours.replace(' ', '').toLowerCase();
+        } else {
+          return formattedHours.replace(/[^0-9]/g, '').concat(":00");
+        }
       }
     }
   }
@@ -130,14 +131,12 @@ export const GraphTooltip = (graphData, metric) => {
       }
 
       const data = tooltipModel.dataPoints[0]
+      const label = !data.dataset.isPrevious ? graphData.labels[data.dataIndex] : undefined
+      const point = !data.dataset.isPrevious ? data.raw || 0 : undefined
+
       const prevData = hasPrevData ? tooltipModel.dataPoints.slice(-1)[0] : undefined
-
-      const pointHasData = hasPrevData ? data.datasetIndex !== prevData.datasetIndex : true;
-
-      const label = pointHasData ? graphData.labels[data.dataIndex] : undefined
-      const point = pointHasData ? data.raw || 0 : undefined
-      const prevLabel = hasPrevData ? graphData.prev_labels[prevData.dataIndex] : undefined
-      const prevPoint = hasPrevData ? prevData.raw || 0 : undefined
+      const prevLabel = prevData && prevData.dataset.isPrevious ? graphData.prev_labels[prevData.dataIndex] : undefined
+      const prevPoint = prevData && prevData.dataset.isPrevious ? prevData.raw || 0 : undefined
       // const pct_change = point === prev_point ? 0 : prev_point === 0 ? 100 : Math.round(((point - prev_point) / prev_point * 100).toFixed(1))
 
       let innerHtml = `
@@ -187,6 +186,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       },
       {
         label,
@@ -199,6 +199,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       }]
     } else {
       return [{
@@ -211,6 +212,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
         pointHoverRadius: 4,
         backgroundColor: gradient,
         fill: true,
+        isPrevious: isPrevious
       }]
     }
   } else {
@@ -226,6 +228,7 @@ export const buildDataSet = (plot, present_index, ctx, label, isPrevious) => {
       pointHoverRadius: 4,
       backgroundColor: prev_gradient,
       fill: true,
+      isPrevious: isPrevious
     }]
   }
 }

@@ -54,17 +54,27 @@ export function formatDayShort(date) {
 }
 
 export function parseUTCDate(dateString) {
-  var date;
-  // Safari Compatibility
-  if (typeof dateString === "string" && dateString.includes(' ')) {
-    const parts = dateString.split(/[^0-9]/);
-    parts[1] -= 1;
-    date = new Date(...parts);
-  } else {
-    date = new Date(dateString);
-  }
+  const date = parseDate(dateString);
 
-  return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  if (isIsoDate(dateString)) {
+    return date;
+  } else {
+    return new Date(date.getTime() + date.getTimezoneOffset() * 60000);
+  }
+}
+
+const MONTH_INDEX = 1
+const MIDNIGHT_TIME_PARTS = ["00", "00", "00"]
+
+export function parseDate(dateString) {
+  const parts = dateString.split(/[^0-9]/);
+  parts[MONTH_INDEX] -= 1;
+
+  if (isIsoDate(dateString)) {
+    return new Date(...[...parts, ...MIDNIGHT_TIME_PARTS]);
+  } else {
+    return new Date(...parts);
+  }
 }
 
 // https://stackoverflow.com/a/11124448
@@ -129,4 +139,10 @@ export function isAfter(date1, date2, period) {
 
 function formatMonthShort(date) {
   return `${MONTHS[date.getMonth()].substring(0, 3)}`;
+}
+
+function isIsoDate(isoDate) {
+  const dateRegex = new RegExp(/^\d{4}-([0][1-9]|1[0-2])-([0-2][1-9]|[1-3]0|3[01])$/);
+
+  return typeof isoDate === "string" && dateRegex.test(isoDate);
 }
